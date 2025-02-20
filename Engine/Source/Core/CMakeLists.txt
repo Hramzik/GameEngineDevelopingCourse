@@ -41,6 +41,7 @@ target_sources(Core
 	PRIVATE ${PUBLIC_FILES}
 	PRIVATE ${PLATFORM_PUBLIC_FILES}
 	PRIVATE ${PLATFORM_PRIVATE_FILES}
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../External/inih
 )
 
 # include dir

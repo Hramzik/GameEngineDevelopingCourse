@@ -3,10 +3,14 @@
 #include <string>
 #include <map>
 #include <windows.h>
+#include <Core/export.h>
 
-class ControlMapper
+class CORE_API ControlMapper final
 {
 public:
+    static ControlMapper* Instance();
+
+private:
     ControlMapper(std::string& iniFilePath);
 
 public:
@@ -27,5 +31,9 @@ private:
     int m_DownVKCode;
     std::map<std::string, int> m_VKMap;
 
-    int parseVKCode(std::string& key);
+    void parseControls();
+
+private:
+    static inline ControlMapper* Instance_ = nullptr;
+    static inline std::string CONTROLS_INI_PATH = "../../../../../controls.ini";
 };

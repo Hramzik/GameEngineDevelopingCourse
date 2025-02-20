@@ -1,6 +1,13 @@
 #include <iostream>
 #include "ControlMapper.h"
 #include "ini.h"
+#include "ini.c"
+
+ControlMapper* ControlMapper::Instance() {
+
+    if (!Instance_) Instance_ = new ControlMapper(CONTROLS_INI_PATH);
+    return Instance_;
+}
 
 ControlMapper::ControlMapper(std::string& iniFilePath):
         iniFilePath(iniFilePath),
@@ -11,7 +18,7 @@ ControlMapper::ControlMapper(std::string& iniFilePath):
         m_UpVKCode(-1),
         m_DownVKCode(-1)
 {
-    VKMap = {
+    m_VKMap = {
         {"A", 'A'}, {"B", 'B'}, {"C", 'C'}, {"D", 'D'}, {"E", 'E'},
         {"F", 'F'}, {"G", 'G'}, {"H", 'H'}, {"I", 'I'}, {"J", 'J'},
         {"K", 'K'}, {"L", 'L'}, {"M", 'M'}, {"N", 'N'}, {"O", 'O'},
@@ -19,6 +26,8 @@ ControlMapper::ControlMapper(std::string& iniFilePath):
         {"U", 'U'}, {"V", 'V'}, {"W", 'W'}, {"X", 'X'}, {"Y", 'Y'},
         {"Z", 'Z'}, {"Space", VK_SPACE}, {"Shift", VK_SHIFT}
     };
+
+    parseControls();
 }
 
 int ControlMapper::GetForwardVKCode()
@@ -51,23 +60,29 @@ int ControlMapper::GetDownVKCode()
     return m_DownVKCode;
 }
 
-void ControlMapper::parseControls() {
+static int InihHandler(void* map, const char* section, const char* name, const char* value)
+{
+    auto controls = static_cast<std::map<std::string, std::string>*>(map);
+
+    if (std::string(section) == "Controls") (*controls)[name] = value;
+
+    return 1;
+}
+#include <filesystem>
+void ControlMapper::parseControls()
+{
     std::map<std::string, std::string> controls;
 
-    auto handler = [&](void* user, const char* section, const char* name, const char* val) {
-        if (std::string(section) == "Controls") controls[name] = val;
-        return 1;
-    };
-
-    if (ini_parse(iniFilePath.c_str(), handler, nullptr) < 0) {
+    auto a = std::filesystem::current_path().string();
+    if (ini_parse(iniFilePath.c_str(), InihHandler, &controls) < 0) {
         std::cerr << "Error while loading controls from '" << iniFilePath << "'\n";
         return;
     }
 
-    m_ForwardVKCode  = VKMap[controls["MoveForward"]];
-    m_BackwardVKCode = VKMap[controls["MoveBackward"]];
-    m_RightVKCode    = VKMap[controls["MoveRight"]];
-    m_LeftVKCode     = VKMap[controls["MoveLeft"]];
-    m_UpVKCode       = VKMap[controls["MoveUp"]];
-    m_DownVKCode     = VKMap[controls["MoveDown"]];
+    m_ForwardVKCode  = m_VKMap[controls["MoveForward"]];
+    m_BackwardVKCode = m_VKMap[controls["MoveBackward"]];
+    m_RightVKCode    = m_VKMap[controls["MoveRight"]];
+    m_LeftVKCode     = m_VKMap[controls["MoveLeft"]];
+    m_UpVKCode       = m_VKMap[controls["MoveUp"]];
+    m_DownVKCode     = m_VKMap[controls["MoveDown"]];
 }

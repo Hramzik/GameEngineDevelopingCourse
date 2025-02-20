@@ -4,6 +4,7 @@
 #include <Constants.h>
 #include <Window/IWindow.h>
 #include <Window.h>
+#include <ControlMapper.h>
 
 namespace GameEngine::Core
 {
@@ -49,27 +50,21 @@ namespace GameEngine::Core
 
     void OnKeyDown(WPARAM key)
     {
-        switch (key)
-        {
-            case 'W': g_MainCameraMovementController->StartForwardMove();  break;
-            case 'S': g_MainCameraMovementController->StartBackwardMove(); break;
-            case 'A': g_MainCameraMovementController->StartLeftMove();     break;
-            case 'D': g_MainCameraMovementController->StartRightMove();    break;
-            case VK_SPACE:  g_MainCameraMovementController->StartUpMove();   break;
-            case VK_SHIFT: g_MainCameraMovementController->StartDownMove(); break;
-        }
+        if (key == ControlMapper::Instance()->GetForwardVKCode())  g_MainCameraMovementController->StartForwardMove();
+        if (key == ControlMapper::Instance()->GetBackwardVKCode()) g_MainCameraMovementController->StartBackwardMove();
+        if (key == ControlMapper::Instance()->GetRightVKCode())    g_MainCameraMovementController->StartRightMove();
+        if (key == ControlMapper::Instance()->GetLeftVKCode())     g_MainCameraMovementController->StartLeftMove();
+        if (key == ControlMapper::Instance()->GetUpVKCode())       g_MainCameraMovementController->StartUpMove();
+        if (key == ControlMapper::Instance()->GetDownVKCode())     g_MainCameraMovementController->StartDownMove();
     }
 
     void OnKeyUp(WPARAM key)
     {
-        switch (key)
-        {
-            case 'W': g_MainCameraMovementController->EndForwardMove();  break;
-            case 'S': g_MainCameraMovementController->EndBackwardMove(); break;
-            case 'A': g_MainCameraMovementController->EndLeftMove();     break;
-            case 'D': g_MainCameraMovementController->EndRightMove();    break;
-            case VK_SPACE:  g_MainCameraMovementController->EndUpMove();   break;
-            case VK_SHIFT: g_MainCameraMovementController->EndDownMove(); break;
-        }
+        if (key == ControlMapper::Instance()->GetForwardVKCode())  g_MainCameraMovementController->EndForwardMove();
+        if (key == ControlMapper::Instance()->GetBackwardVKCode()) g_MainCameraMovementController->EndBackwardMove();
+        if (key == ControlMapper::Instance()->GetRightVKCode())    g_MainCameraMovementController->EndRightMove();
+        if (key == ControlMapper::Instance()->GetLeftVKCode())     g_MainCameraMovementController->EndLeftMove();
+        if (key == ControlMapper::Instance()->GetUpVKCode())       g_MainCameraMovementController->EndUpMove();
+        if (key == ControlMapper::Instance()->GetDownVKCode())     g_MainCameraMovementController->EndDownMove();
     }
 }
