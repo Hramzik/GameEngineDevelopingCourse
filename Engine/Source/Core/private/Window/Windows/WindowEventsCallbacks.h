@@ -46,4 +46,30 @@ namespace GameEngine::Core
 
         window->SetMousePos(x, y);
     }
+
+    void OnKeyDown(WPARAM key)
+    {
+        switch (key)
+        {
+            case 'W': g_MainCameraMovementController->StartForwardMove();  break;
+            case 'S': g_MainCameraMovementController->StartBackwardMove(); break;
+            case 'A': g_MainCameraMovementController->StartLeftMove();     break;
+            case 'D': g_MainCameraMovementController->StartRightMove();    break;
+            case VK_SPACE:  g_MainCameraMovementController->StartUpMove();   break;
+            case VK_SHIFT: g_MainCameraMovementController->StartDownMove(); break;
+        }
+    }
+
+    void OnKeyUp(WPARAM key)
+    {
+        switch (key)
+        {
+            case 'W': g_MainCameraMovementController->EndForwardMove();  break;
+            case 'S': g_MainCameraMovementController->EndBackwardMove(); break;
+            case 'A': g_MainCameraMovementController->EndLeftMove();     break;
+            case 'D': g_MainCameraMovementController->EndRightMove();    break;
+            case VK_SPACE:  g_MainCameraMovementController->EndUpMove();   break;
+            case VK_SHIFT: g_MainCameraMovementController->EndDownMove(); break;
+        }
+    }
 }

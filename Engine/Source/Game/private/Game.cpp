@@ -13,6 +13,7 @@ namespace GameEngine
 		Core::g_MainCamera = new Core::Camera();
 		Core::g_MainCamera->SetPosition(Math::Vector3f(0.0f, 6.0f, -6.0f));
 		Core::g_MainCamera->SetViewDir(Math::Vector3f(0.0f, -6.0f, 6.0f).Normalized());
+        Core::g_MainCameraMovementController = new Core::CameraMovementController(*Core::g_MainCamera);
 
 		m_renderThread = std::make_unique<Render::RenderThread>();
 
@@ -68,5 +69,8 @@ namespace GameEngine
 			}
 			m_Objects[i]->SetPosition(pos, m_renderThread->GetMainFrame());
 		}
+
+        // move camera
+        Core::g_MainCameraMovementController->MoveCamera(dt);
 	}
 }
