@@ -19,12 +19,12 @@ ControlMapper::ControlMapper(std::string& iniFilePath):
         m_DownVKCode(-1)
 {
     m_VKMap = {
-        {"A", 'A'}, {"B", 'B'}, {"C", 'C'}, {"D", 'D'}, {"E", 'E'},
-        {"F", 'F'}, {"G", 'G'}, {"H", 'H'}, {"I", 'I'}, {"J", 'J'},
-        {"K", 'K'}, {"L", 'L'}, {"M", 'M'}, {"N", 'N'}, {"O", 'O'},
-        {"P", 'P'}, {"Q", 'Q'}, {"R", 'R'}, {"S", 'S'}, {"T", 'T'},
-        {"U", 'U'}, {"V", 'V'}, {"W", 'W'}, {"X", 'X'}, {"Y", 'Y'},
-        {"Z", 'Z'}, {"Space", VK_SPACE}, {"Shift", VK_SHIFT}
+        {"a", 'A'}, {"b", 'B'}, {"c", 'C'}, {"d", 'D'}, {"e", 'E'},
+        {"f", 'F'}, {"g", 'G'}, {"h", 'H'}, {"i", 'I'}, {"j", 'J'},
+        {"k", 'K'}, {"l", 'L'}, {"m", 'M'}, {"n", 'N'}, {"o", 'O'},
+        {"p", 'P'}, {"q", 'Q'}, {"r", 'R'}, {"s", 'S'}, {"t", 'T'},
+        {"u", 'U'}, {"v", 'V'}, {"w", 'W'}, {"x", 'X'}, {"y", 'Y'},
+        {"z", 'Z'}, {"space", VK_SPACE}, {"shift", VK_SHIFT}
     };
 
     parseControls();
@@ -77,6 +77,13 @@ void ControlMapper::parseControls()
     if (ini_parse(iniFilePath.c_str(), InihHandler, &controls) < 0) {
         std::cerr << "Error while loading controls from '" << iniFilePath << "'\n";
         return;
+    }
+
+    // convert to lowercase
+    for (auto& pair : controls)
+    {
+        std::transform(pair.second.begin(), pair.second.end(), pair.second.begin(),
+                       [](unsigned char c){ return std::tolower(c); });
     }
 
     m_ForwardVKCode  = m_VKMap[controls["MoveForward"]];
