@@ -4,5 +4,5 @@
 
 namespace GameEngine::PhysicsManager
 {
-    const float GravityAcceleration = -9.8f;
+    const float GravityAcceleration = -9.8;
 }

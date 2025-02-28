@@ -14,7 +14,7 @@ namespace GameEngine
 	public:
 		Render::RenderObject** GetRenderObjectRef() { return &m_RenderObject; }
 
-        virtual void Update(float dt);
+        virtual void Update(float dt, size_t frame);
 
 		void SetPosition(Math::Vector3f position, size_t frame)
 		{
