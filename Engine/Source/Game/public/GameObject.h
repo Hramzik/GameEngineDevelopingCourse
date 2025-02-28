@@ -6,13 +6,15 @@
 
 namespace GameEngine
 {
-	class GameObject final
+	class GameObject
 	{
 	public:
 		GameObject() = default;
 
 	public:
 		Render::RenderObject** GetRenderObjectRef() { return &m_RenderObject; }
+
+        virtual void Update(float dt);
 
 		void SetPosition(Math::Vector3f position, size_t frame)
 		{

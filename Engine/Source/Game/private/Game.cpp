@@ -2,6 +2,7 @@
 #include <DefaultGeometry.h>
 #include <Game.h>
 #include <GameObject.h>
+#include <JumpingObject.h>
 #include <Input/InputHandler.h>
 
 namespace GameEngine
@@ -20,7 +21,7 @@ namespace GameEngine
 		// How many objects do we want to create
 		for (int i = 0; i < 3; ++i)
 		{
-			m_Objects.push_back(new GameObject());
+			m_Objects.push_back(new JumpingObject());
 			Render::RenderObject** renderObject = m_Objects.back()->GetRenderObjectRef();
 			m_renderThread->EnqueueCommand(Render::ERC::CreateRenderObject, RenderCore::DefaultGeometry::Cube(), renderObject);
 		}
