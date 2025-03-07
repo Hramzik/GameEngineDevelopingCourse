@@ -72,4 +72,4 @@ void RegisterEcsPhysSystems(flecs::world& world)
 		pos.value.z += rand_flt(-shiver.value, shiver.value);
 	});
 }
-#include "ecsShoot.cpp"
+
