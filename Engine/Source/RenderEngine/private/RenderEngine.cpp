@@ -57,4 +57,21 @@ namespace GameEngine::Render
 
 		m_RenderObjects.push_back(renderObject);
 	}
+
+    void RenderEngine::DestroyRenderObject(RenderObject* renderObject)
+	{
+		assert(renderObject);
+
+        HAL::RenderData* renderData = renderObject->GetRenderData();
+        if (renderData)
+        {
+            delete renderData;
+            renderObject->SetRenderData(nullptr);
+        }
+    
+        auto it = std::find(m_RenderObjects.begin(), m_RenderObjects.end(), renderObject);
+        if (it != m_RenderObjects.end()) m_RenderObjects.erase(it);
+
+        delete renderObject;
+	}
 }

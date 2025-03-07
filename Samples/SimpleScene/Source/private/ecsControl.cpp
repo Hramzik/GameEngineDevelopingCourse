@@ -1,10 +1,14 @@
 #include <Camera.h>
+#include <DefaultGeometry.h>
 #include <ecsControl.h>
 #include <ECS/ecsSystems.h>
+#include <ecsMesh.h>
 #include <ecsPhys.h>
+#include <ecsShoot.h>
 #include <flecs.h>
 #include <Input/Controller.h>
 #include <Input/InputHandler.h>
+#include <RenderObject.h>
 #include <Vector.h>
 
 using namespace GameEngine;
@@ -47,5 +51,35 @@ void RegisterEcsControlSystems(flecs::world& world)
 			}
 		}
 	});
+
+    world.system<const ControllerPtr, const Position, const CameraPtr, AmmoShooter>()
+        .each([&](const ControllerPtr& controller, const Position& pos, const CameraPtr& camera, AmmoShooter& shooter)
+    {
+        if (!controller.ptr->IsPressed("Shoot")) { shooter.isAbleToShoot = true; return; }
+        if (!shooter.isAbleToShoot) return;
+        shooter.isAbleToShoot = false;
+
+        if (shooter.reloadTime > 0) return;
+        if (shooter.ammoCount <= 0)
+        {
+            shooter.reloadTime = AmmoShooter::DEFAULT_RELOAD_TIME;
+            shooter.ammoCount = AmmoShooter::DEFAULT_RELOAD_COUNT;
+            return;
+        }
+
+        Math::Vector3f shootDirection = camera.ptr->GetViewDir();
+        flecs::entity ball = world.entity()
+            .set(BulletTag{})
+            .set(Position{ pos.value })
+            .set(Velocity{ shootDirection * AmmoShooter::DEFAULT_SPEED })
+            .set(Gravity{ Math::Vector3f(0.f, -9.8065f, 0.f) })
+            .set(BouncePlane{ Math::Vector4f(0.f, 1.f, 0.f, 5.f) })
+            .set(Bounciness{ -1 })
+            .set(GeometryPtr{ RenderCore::DefaultGeometry::Cube() })
+            .set(RenderObjectPtr{ new Render::RenderObject() })
+            .set(GroundHitLifetime{});
+
+        shooter.ammoCount--;
+    });
 }
 

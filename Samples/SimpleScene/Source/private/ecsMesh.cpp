@@ -24,6 +24,13 @@ void RegisterEcsMeshSystems(flecs::world& world)
 	{
 		renderObject.ptr->SetPosition(position.value, renderThread->ptr->GetMainFrame());
 	});
+
+    world.observer<RenderObjectPtr>()
+        .event(flecs::OnRemove)
+        .each([&](RenderObjectPtr& renderObject)
+    {
+        renderThread->ptr->EnqueueCommand(Render::ERC::DestroyRenderObject, (GameEngine::RenderCore::Geometry::Ptr) nullptr, renderObject.ptr);
+    });
 }
 
 

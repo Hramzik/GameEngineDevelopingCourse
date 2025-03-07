@@ -16,6 +16,7 @@ struct GeometryPtr
 struct RenderObjectPtr
 {
 	GameEngine::Render::RenderObject* ptr = nullptr;
+    bool isActive = true;
 };
 
 void RegisterEcsMeshSystems(flecs::world& world);
