@@ -7,6 +7,7 @@
 #include <ecsControl.h>
 #include <ecsMesh.h>
 #include <ecsPhys.h>
+#include <ecsShoot.h>
 #include <ECS/ecsSystems.h>
 #include <GameFramework/GameFramework.h>
 #include <Input/Controller.h>
@@ -40,13 +41,32 @@ void GameFramework::Init()
 		.set(BouncePlane{ 0.f, 1.f, 0.f, 5.f })
 		.set(Bounciness{ 1.f })
 		.set(EntitySystem::ECS::GeometryPtr{ RenderCore::DefaultGeometry::Cube() })
-		.set(EntitySystem::ECS::RenderObjectPtr{ new Render::RenderObject() });
+		.set(EntitySystem::ECS::RenderObjectPtr{ new Render::RenderObject() })
+        .set(DestroyTimer{ 5 })
+        ;
 
+    float spacing = 3;
+    int gridSize = 5;
+
+    for (int x = 0; x < gridSize; ++x) {
+    for (int y = 0; y < gridSize; ++y) {
+
+        m_World.entity()
+            .set(Position{ 6 + x * spacing, 5 + y * spacing, 0 })
+            .set(EntitySystem::ECS::GeometryPtr{ RenderCore::DefaultGeometry::Cube() })
+		    .set(EntitySystem::ECS::RenderObjectPtr{ new Render::RenderObject() })
+            .set(HitboxSize{ 1, 1, 1 })
+            .set(Health{ 100 })
+            ;
+    }}
+    
 	flecs::entity camera = m_World.entity()
 		.set(Position{ 0.0f, 12.0f, -10.0f })
 		.set(Speed{ 10.f })
 		.set(CameraPtr{ Core::g_MainCamera })
-		.set(ControllerPtr{ new Core::Controller(Core::g_FileSystem->GetConfigPath("Input_default.ini")) });
+		.set(ControllerPtr{ new Core::Controller(Core::g_FileSystem->GetConfigPath("Input_default.ini")) })
+        .set(BulletShooter{ });
+        ;
 }
 
 void GameFramework::RegisterComponents()
@@ -60,12 +80,19 @@ void GameFramework::RegisterComponents()
 	ECS_META_COMPONENT(m_World, ShiverAmount);
 	ECS_META_COMPONENT(m_World, FrictionAmount);
 	ECS_META_COMPONENT(m_World, Speed);
+
+    // New components
+    ECS_META_COMPONENT(m_World, DestroyTimer);
+    ECS_META_COMPONENT(m_World, Health);
+    ECS_META_COMPONENT(m_World, Bullet);
+    ECS_META_COMPONENT(m_World, HitboxSize);
 }
 
 void GameFramework::RegisterSystems()
 {
 	RegisterEcsMeshSystems(m_World);
 	RegisterEcsControlSystems(m_World);
+	RegisterEcsShootSystems(m_World);
 }
 
 void GameFramework::Update(float dt)
