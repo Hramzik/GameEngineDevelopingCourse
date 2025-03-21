@@ -13,7 +13,7 @@ local function CheckCollision(pos1, _, pos2, _)
     local dx = pos1.x - pos2.x
     local dy = pos1.y - pos2.y
     local dz = pos1.z - pos2.z
-    return dx * dx + dy * dy + dz * dz < 4
+    return dx * dx + dy * dy + dz * dz < 16
 end
 
 local function DestroyTimerSystem(it)
@@ -51,35 +51,44 @@ end
 --     end
 -- end
 
+local bullets = {}
 local targets = {}
 
 local function CollectTargetsSystem(it)
     targets = {}
     for pos, hitbox, health, entity in ecs.each(it) do
-        table.insert(targets, {pos = pos, hitbox = hitbox, entity = entity})
+        table.insert(targets, {pos = pos, hitbox = hitbox, entity = entity, health = health})
+    end
+end
+
+local function CollectBulletsSystem(it)
+    bullets = {}
+    for pos, hitbox, bullet, entity in ecs.each(it) do
+        table.insert(bullets, {pos = pos, hitbox = hitbox, entity = entity, bullet = bullet, destroyed = false})
     end
 end
 
 ecs.system(CollectTargetsSystem, "CollectTargetsSystem", ecs.OnUpdate, "Position, HitboxSize, Health")
+ecs.system(CollectBulletsSystem, "CollectBulletsSystem", ecs.OnUpdate, "Position, HitboxSize, Bullet")
 
-local function BulletHitSystem(it)
-    for pos, bulletHitbox, bullet, bulletEntity in ecs.each(it) do
+local function BulletHitSystem(_)
+    for _, bullet in ipairs(bullets) do
         for _, target in ipairs(targets) do
-            if CheckCollision(pos, bulletHitbox, target.pos, target.hitbox) then
-                ecs.delete(bulletEntity)
-                ecs.delete(target.entity)
+            if CheckCollision(bullet.pos, bullet.hitbox, target.pos, target.hitbox) and not bullet.destroyed then
+                bullet.destroyed = true
+                ecs.delete(bullet.entity)
                 break
             end
         end
     end
 end
 
-ecs.system(BulletHitSystem, "BulletHitSystem", ecs.OnUpdate, "Position, HitboxSize, Bullet")
+ecs.system(BulletHitSystem, "BulletHitSystem", ecs.OnUpdate)
 
 local function HealthSystem(it)
     for health, ent in ecs.each(it, "Health") do
         if health.value <= 0 then
-            health.value = 0
+            ecs.delete(ent)
         end
     end
 end
