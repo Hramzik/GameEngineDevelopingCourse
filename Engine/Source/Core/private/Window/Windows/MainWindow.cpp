@@ -55,6 +55,10 @@ namespace GameEngine::Core
 			}
 			return 0;
 		case WM_LBUTTONUP:
+            if (g_MainWindowsApplication->IsFocused()) [[likely]]
+            {
+                InputHandler::GetInstance()->KeyReleased(MouseButton::LMB);
+            }
 		case WM_RBUTTONUP:
 		case WM_MBUTTONUP:
 			if (g_MainWindowsApplication->IsFocused()) [[likely]]
