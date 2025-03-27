@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "type_traits": "cpp",
+        "charconv": "cpp",
+        "xmemory": "cpp"
+    }
+}

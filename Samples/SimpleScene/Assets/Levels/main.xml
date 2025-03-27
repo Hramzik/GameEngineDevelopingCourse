@@ -1,5 +1,43 @@
 <?xml version="1.0"?>
-<level name="SomeRandomName">
-   <entity Name="BounceCube" Position="2.0,0.0,0.0" Velocity="0.0,3.0,0.0" Gravity="0.0,-9.8,0.0" BouncePlane="0.0,1.0,0.0,5.0" Bounciness="1.0" GeometryPtr="Cube"/>
-   <entity Name="ControllableCube" Position="-2.0,0.0,0.0" Velocity="0.0,0.0,0.0" Speed="10" FrictionAmount="0.9" JumpSpeed="10" Gravity="0.0,-9.8,0.0" BouncePlane="0.0,1.0,0.0,5.0" Bounciness="0.3" GeometryPtr="Cube" ControllerPtr="Input_default.ini"/>
+<level name="MainLevel">
+   <entity Name="BounceCube"
+           Position="2.0,0.0,0.0"
+           Velocity="0.0,3.0,0.0"
+           Gravity="0.0,-9.8,0.0"
+           BouncePlane="0.0,1.0,0.0,5.0"
+           Bounciness="1.0"
+           GeometryPtr="Cube"/>
+
+   <entity Name="ControllableCube"
+           Position="-2.0,0.0,0.0"
+           Velocity="0.0,0.0,0.0"
+           Speed="10"
+           FrictionAmount="0.9"
+           JumpSpeed="10"
+           Gravity="0.0,-9.8,0.0"
+           BouncePlane="0.0,1.0,0.0,5.0"
+           Bounciness="0.3"
+           GeometryPtr="Cube"
+           ControllerPtr="Input_default.ini"/>
+
+   <entity Name="TimedObject"
+           Position="6,5,0"
+           GeometryPtr="Cube"
+           DestroyTimer="5"/>
+
+   <entity Name="Collider1"
+           Position="10,9,0"
+           Velocity="-3,3,0"
+           MovementRestrictor="1,1,0,-5,5,9,11,0,0"
+           Hitbox="1"
+           CollisionStatus="0, 0"
+           GeometryPtr="Cube"/>
+
+   <entity Name="Collider2"
+           Position="-10,9,0"
+           Velocity="3,3,0"
+           MovementRestrictor="1,1,0,-5,5,9,11,0,0"
+           Hitbox="1"
+           CollisionStatus="0, 0"
+           GeometryPtr="Cube"/>
 </level>
