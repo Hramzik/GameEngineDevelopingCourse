@@ -21,14 +21,22 @@ namespace GameEngine
 			virtual const char* GetName() const override { return "Level Editor"; }
 
 		private:
+			void RegisterNewLevelObject(World::LevelObject& levelObject);
 			void Save();
+			void DeleteAllObjects();
 
 		private:
 			Core::Timer m_SaveButtonMessageTimer;
 			bool m_SaveButtonPressed = false;
 			float m_TimeToShowSaveButtonMessage = 3.f;
 
+            Core::Timer m_DeleteButtonMessageTimer;
+            bool m_DeleteButtonPressed = false;
+            int m_DeletedObjectsCount = 0;
+            float m_TimeToShowDeleteMessage = 3;
+
 			std::optional<World::Level> m_Level = std::nullopt;
+			flecs::world* m_World = nullptr;
 		};
 	}
 }
