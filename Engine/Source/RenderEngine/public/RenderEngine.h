@@ -22,6 +22,7 @@ namespace GameEngine::Render
 		void OnEndFrame();
 
 		void CreateRenderObject(RenderCore::Geometry* geometry, RenderObject* renderObject);
+		void DestroyRenderObject(RenderObject* renderObject);
 
 		std::shared_ptr<HAL::RHIContext> GetRHI() const { return m_rhi; }
 

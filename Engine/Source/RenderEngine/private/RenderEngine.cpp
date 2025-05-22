@@ -272,4 +272,14 @@ namespace GameEngine::Render
 		renderObject->SetMaterialID(materialID);
 		m_RenderObjects.push_back(renderObject);
 	}
+
+	void RenderEngine::DestroyRenderObject(RenderObject* renderObject)
+	{
+		assert(renderObject);
+
+		auto it = std::find(m_RenderObjects.begin(), m_RenderObjects.end(), renderObject);
+		if (it != m_RenderObjects.end()) m_RenderObjects.erase(it);
+
+		delete renderObject;
+	}
 }
