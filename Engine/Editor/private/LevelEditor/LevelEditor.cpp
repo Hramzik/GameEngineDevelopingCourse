@@ -23,6 +23,8 @@ LevelEditor::LevelEditor(flecs::world& world):
 	{
 		World::LevelObject& levelObject = *levelObjectPtr;
 		flecs::entity entity = world.entity(levelObject.GetName().c_str());
+		if (!levelObject.GetFolder().empty()) m_Foldernames.insert(levelObject.GetFolder());
+
 		World::LevelObject::ComponentList& componentList = levelObject.GetComponents();
 
 		World::LevelObject::ComponentList::iterator positionAttribute = std::ranges::find_if(componentList,
@@ -54,6 +56,13 @@ LevelEditor::LevelEditor(flecs::world& world):
 					)
 				});
 		}
+
+		World::LevelObject::ComponentList::iterator folderAttribute = std::ranges::find_if(componentList,
+			[](World::LevelObject::Component& component)
+			{
+				return !std::strcmp(component.first.c_str(), "Folder");
+			}
+		);
 	}
 
 	EntitySystem::LevelEditorECS::RegisterLevelEditorEcsSystems(world);
@@ -253,7 +262,11 @@ void LevelEditor::DrawObject(size_t i, World::LevelObject& levelObject)
 
 	if (isComponentsShown)
 	{
-		for (World::LevelObject::Component& component : levelObject.GetComponents()) ImGui::InputText(component.first.c_str(), &component.second);
+		for (World::LevelObject::Component& component : levelObject.GetComponents())
+		{
+			ImGui::SetNextItemWidth(150);
+			ImGui::InputText(component.first.c_str(), &component.second);
+		}
 		ImGui::TreePop();
 	}
 }

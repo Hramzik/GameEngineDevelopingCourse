@@ -27,6 +27,7 @@ namespace GameEngine::Editor
 			assert(entityElem != nullptr);
 
 			entityElem->SetAttribute("Name", levelObject.GetName().c_str());
+			entityElem->SetAttribute("Folder", levelObject.GetFolder().c_str());
 
 			for (const World::LevelObject::Component& component : levelObject.GetComponents())
 			{
