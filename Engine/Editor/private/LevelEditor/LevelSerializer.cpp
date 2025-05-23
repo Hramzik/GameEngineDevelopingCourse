@@ -20,8 +20,9 @@ namespace GameEngine::Editor
 		root->SetAttribute("name", level.GetName().c_str());
 		doc.InsertFirstChild(root);
 
-		for (const World::LevelObject& levelObject : level.GetLevelObjects())
+		for (auto& levelObjectPtr : level.GetLevelObjects())
 		{
+			const World::LevelObject& levelObject = *levelObjectPtr;
 			tinyxml2::XMLElement* entityElem = root->InsertNewChildElement("entity");
 			assert(entityElem != nullptr);
 

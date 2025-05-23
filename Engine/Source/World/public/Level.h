@@ -1,7 +1,6 @@
 #pragma once
 
 #include <World/export.h>
-
 #include <LevelObject.h>
 
 namespace GameEngine::World
@@ -9,7 +8,7 @@ namespace GameEngine::World
 	class WORLD_API Level final
 	{
 	public:
-		using LevelObjectList = std::vector<LevelObject>;
+		using LevelObjectList = std::vector<std::shared_ptr<LevelObject>>;
 
 	public:
 		Level() = delete;

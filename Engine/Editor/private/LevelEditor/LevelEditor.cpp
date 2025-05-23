@@ -17,8 +17,9 @@ LevelEditor::LevelEditor(flecs::world& world):
 {
 	m_Level = LevelSerializer::Deserialize(Core::g_FileSystem->GetFilePath("Levels/Main.xml").generic_string());
 
-	for (World::LevelObject& levelObject : m_Level->GetLevelObjects())
+	for (auto& levelObjectPtr : m_Level->GetLevelObjects())
 	{
+		World::LevelObject& levelObject = *levelObjectPtr;
 		flecs::entity entity = world.entity(levelObject.GetName().c_str());
 		World::LevelObject::ComponentList& componentList = levelObject.GetComponents();
 
@@ -94,7 +95,7 @@ void LevelEditor::DrawObjects(const char* searchFilter)
 
 	for (size_t i = 0; i < m_Level->GetLevelObjects().size(); ++i)
 	{
-		World::LevelObject& levelObject = m_Level->GetLevelObjects()[i];
+		World::LevelObject& levelObject = *m_Level->GetLevelObjects()[i];
 		if (searchFilter[0] != '\0' && levelObject.GetName().find(searchFilter) == std::string::npos) continue;
 
 		bool isEditing = editingIndex == i;
@@ -188,7 +189,7 @@ void LevelEditor::DrawObjects(const char* searchFilter)
 		for (size_t index : selectedIndices)
 		{
 			auto iter = m_Level->GetLevelObjects().begin() + index;
-			flecs::entity e = m_World.lookup(iter->GetName().c_str());
+			flecs::entity e = m_World.lookup((*iter)->GetName().c_str());
 			e.destruct();
 			m_Level->GetLevelObjects().erase(iter);
 		}
