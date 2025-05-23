@@ -5,6 +5,8 @@
 #include <Timer.h>
 #include <flecs.h>
 
+#include <set>
+
 namespace GameEngine
 {
 	namespace Editor
@@ -18,6 +20,7 @@ namespace GameEngine
 		public:
 			virtual void Draw() override;
 			void DrawObjects(const char* searchFilter);
+			void DrawObject(size_t i, World::LevelObject& levelObject);
 			virtual void Update(float dt) override;
 			virtual const char* GetName() const override { return "Level Editor"; }
 
@@ -27,10 +30,16 @@ namespace GameEngine
 		private:
 			Core::Timer m_SaveButtonMessageTimer;
 			bool m_SaveButtonPressed = false;
+			bool m_IsCtrlPressed = false;
 			float m_TimeToShowSaveButtonMessage = 3.f;
 
 			std::optional<World::Level> m_Level = std::nullopt;
 			flecs::world& m_World;
+
+			std::set<std::string> m_Foldernames;
+			std::vector<size_t> m_SelectedIndexes;
+			std::optional<size_t> m_LastSelectedIndex;
+			std::optional<size_t> m_nameEditingIndex;
 		};
 	}
 }

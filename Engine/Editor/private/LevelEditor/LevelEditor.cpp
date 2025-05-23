@@ -9,6 +9,8 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 
+#include <map>
+
 namespace GameEngine {
 namespace Editor {
 
@@ -64,13 +66,61 @@ void LevelEditor::Draw()
 	static char searchText[256] = "";
 	ImGui::InputTextWithHint("##Search", "Search...", searchText, sizeof(searchText));
 
+	if (ImGui::Button("Create Folder")) ImGui::OpenPopup("Create New Folder");
+
+	if (!m_SelectedIndexes.empty() && !m_Foldernames.empty())
+	{
+		ImGui::SameLine();
+		if (ImGui::Button("Add to Folder")) ImGui::OpenPopup("Select Folder To Add");
+	
+		ImGui::SameLine();
+		if (ImGui::Button("Remove from Folder"))
+		{
+			for (size_t index : m_SelectedIndexes) m_Level->GetLevelObjects()[index]->SetFolder("");
+		}
+	}
+
+	if (ImGui::BeginPopupModal("Create New Folder", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		static char folderName[128] = "";
+		ImGui::InputText("Folder Name", folderName, sizeof(folderName));
+		
+		if (ImGui::Button("Create"))
+		{
+			if (strlen(folderName) > 0)
+			{
+				m_Foldernames.insert(folderName);
+				folderName[0] = '\0';
+				ImGui::CloseCurrentPopup();
+			}
+		}
+		
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel"))
+		{
+			folderName[0] = '\0';
+			ImGui::CloseCurrentPopup();
+		}
+		
+		ImGui::EndPopup();
+	}
+
+	if (ImGui::BeginPopup("Select Folder To Add"))
+	{
+		for (const auto& folder : m_Foldernames)
+		{
+			if (!ImGui::MenuItem(folder.c_str())) continue;
+			for (size_t index : m_SelectedIndexes) m_Level->GetLevelObjects()[index]->SetFolder(folder);
+		}
+		ImGui::EndPopup();
+	}
+
 	if (m_Level.has_value()) DrawObjects(searchText);
 
 	if (ImGui::Button("Save"))
 	{
 		m_SaveButtonMessageTimer.Reset();
 		m_SaveButtonPressed = true;
-
 		Save();
 	}
 
@@ -85,108 +135,40 @@ void LevelEditor::Draw()
 
 void LevelEditor::DrawObjects(const char* searchFilter)
 {
-	static std::optional<size_t> editingIndex;
-	static char editBuffer[256];
-	static std::vector<size_t> selectedIndices;
-	static std::optional<size_t> lastSelectedIndex;
+	for (const auto& folder : m_Foldernames)
+	{
+		if (!ImGui::TreeNodeEx(folder.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding)) continue;
+		for (size_t i = 0; i < m_Level->GetLevelObjects().size(); ++i)
+		{
+			World::LevelObject& levelObject = *m_Level->GetLevelObjects()[i];
+			if (levelObject.GetFolder() != folder) continue;
+			if (searchFilter[0] != '\0' && levelObject.GetName().find(searchFilter) == std::string::npos) continue;
 
-	const bool isCtrlPressed  = ImGui::GetIO().KeyCtrl;
-	const bool isShiftPressed = ImGui::GetIO().KeyShift;
+			DrawObject(i, levelObject);
+		}
+		ImGui::TreePop();
+	}
 
 	for (size_t i = 0; i < m_Level->GetLevelObjects().size(); ++i)
 	{
 		World::LevelObject& levelObject = *m_Level->GetLevelObjects()[i];
+		if (!levelObject.GetFolder().empty()) continue;
 		if (searchFilter[0] != '\0' && levelObject.GetName().find(searchFilter) == std::string::npos) continue;
 
-		bool isEditing = editingIndex == i;
-		bool isSelected = std::find(selectedIndices.begin(), selectedIndices.end(), i) != selectedIndices.end();
-		
-		if (isSelected)
-		{
-			ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
-			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
-		}
-
-		bool isComponentsShown = ImGui::TreeNodeEx((void*)(intptr_t)i, ImGuiTreeNodeFlags_FramePadding | (isSelected ? ImGuiTreeNodeFlags_Selected : 0), "");
-
-		if (isSelected) ImGui::PopStyleColor(2);
-		ImGui::SameLine(ImGui::GetTreeNodeToLabelSpacing() + 8);
-
-		if (isEditing)
-		{
-			strncpy(editBuffer, levelObject.GetName().c_str(), sizeof(editBuffer));
-			ImGui::SetNextItemWidth(-1);
-			if (ImGui::InputText("##edit", editBuffer, sizeof(editBuffer), ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
-			{
-				levelObject.SetName(editBuffer);
-				editingIndex.reset();
-			}
-			if (ImGui::IsMouseClicked(0) && !ImGui::IsItemHovered()) editingIndex.reset();
-		}
-		else
-		{
-			if (searchFilter[0] != '\0') ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
-			
-			if (ImGui::Selectable(levelObject.GetName().c_str(), isSelected, ImGuiSelectableFlags_AllowDoubleClick | ImGuiSelectableFlags_SpanAllColumns))
-			{
-				if (isShiftPressed && lastSelectedIndex)
-				{
-					selectedIndices.clear();
-					size_t start = std::min(*lastSelectedIndex, i);
-					size_t end   = std::max(*lastSelectedIndex, i);
-					for (size_t rangeIdx = start; rangeIdx <= end; ++rangeIdx) selectedIndices.push_back(rangeIdx);
-				}
-				else if (isCtrlPressed)
-				{
-					auto it = std::find(selectedIndices.begin(), selectedIndices.end(), i);
-					if (it != selectedIndices.end()) selectedIndices.erase(it);
-					else
-					{
-						selectedIndices.push_back(i);
-						lastSelectedIndex = i;
-					}
-				}
-				else
-				{
-					selectedIndices.clear();
-					selectedIndices.push_back(i);
-					lastSelectedIndex = i;
-				}
-
-				if (ImGui::IsMouseDoubleClicked(0))
-				{
-					editingIndex = i;
-					lastSelectedIndex = i;
-					if (std::find(selectedIndices.begin(), selectedIndices.end(), i) == selectedIndices.end())
-					{
-						selectedIndices.clear();
-						selectedIndices.push_back(i);
-					}
-				}
-			}
-			
-			if (searchFilter[0] != '\0') ImGui::PopStyleColor();
-		}
-
-		if (isComponentsShown)
-		{
-			for (World::LevelObject::Component& component : levelObject.GetComponents()) ImGui::InputText(component.first.c_str(), &component.second);
-			ImGui::TreePop();
-		}
+		DrawObject(i, levelObject);
 	}
 
-	if (ImGui::IsMouseClicked(0) && !ImGui::IsAnyItemHovered() && ImGui::IsWindowHovered() && !isCtrlPressed)
+	if (ImGui::IsMouseClicked(0) && !ImGui::IsAnyItemHovered() && ImGui::IsWindowHovered() && !m_IsCtrlPressed)
 	{
-		selectedIndices.clear();
-		lastSelectedIndex.reset();
+		m_SelectedIndexes.clear();
+		m_LastSelectedIndex.reset();
 	}
 
-	if (!selectedIndices.empty() && ImGui::IsKeyPressed(ImGuiKey_Delete))
+	if (!m_SelectedIndexes.empty() && ImGui::IsKeyPressed(ImGuiKey_Delete))
 	{
-		// Sort to keep indexes valid after deletion
-		std::sort(selectedIndices.begin(), selectedIndices.end(), std::greater<size_t>());
+		std::sort(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), std::greater<size_t>());
 		
-		for (size_t index : selectedIndices)
+		for (size_t index : m_SelectedIndexes)
 		{
 			auto iter = m_Level->GetLevelObjects().begin() + index;
 			flecs::entity e = m_World.lookup((*iter)->GetName().c_str());
@@ -194,20 +176,94 @@ void LevelEditor::DrawObjects(const char* searchFilter)
 			m_Level->GetLevelObjects().erase(iter);
 		}
 		
-		selectedIndices.clear();
-		lastSelectedIndex.reset();
-		editingIndex.reset();
+		m_SelectedIndexes.clear();
+		m_LastSelectedIndex.reset();
+		m_nameEditingIndex.reset();
+	}
+}
+
+void LevelEditor::DrawObject(size_t i, World::LevelObject& levelObject)
+{
+	bool isNameEditing = m_nameEditingIndex == i;
+	bool isSelected = std::find(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), i) != m_SelectedIndexes.end();
+	
+	if (isSelected)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyle().Colors[ImGuiCol_ButtonActive]);
+		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+	}
+
+	bool isComponentsShown = ImGui::TreeNodeEx((void*)(intptr_t)i, ImGuiTreeNodeFlags_FramePadding | (isSelected ? ImGuiTreeNodeFlags_Selected : 0), "");
+
+	if (isSelected) ImGui::PopStyleColor(2);
+	ImGui::SameLine(ImGui::GetTreeNodeToLabelSpacing() + (levelObject.GetFolder().empty() ? 8 : 30));
+
+	static char nameEditBuffer[256];
+	if (isNameEditing)
+	{
+		strncpy(nameEditBuffer, levelObject.GetName().c_str(), sizeof(nameEditBuffer));
+		ImGui::SetNextItemWidth(-1);
+		if (ImGui::InputText("##edit", nameEditBuffer, sizeof(nameEditBuffer), ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
+		{
+			levelObject.SetName(nameEditBuffer);
+			m_nameEditingIndex.reset();
+		}
+		if (ImGui::IsMouseClicked(0) && !ImGui::IsItemHovered()) m_nameEditingIndex.reset();
+	}
+	else
+	{
+		if (ImGui::Selectable(levelObject.GetName().c_str(), isSelected, ImGuiSelectableFlags_AllowDoubleClick | ImGuiSelectableFlags_SpanAllColumns))
+		{
+			//if (isShiftPressed && m_LastSelectedIndex)
+			//{
+			//	m_SelectedIndexes.clear();
+			//	size_t start = std::min(*m_LastSelectedIndex, i);
+			//	size_t end   = std::max(*m_LastSelectedIndex, i);
+			//	for (size_t rangeIdx = start; rangeIdx <= end; ++rangeIdx) m_SelectedIndexes.push_back(rangeIdx);
+			//} else
+			if (m_IsCtrlPressed)
+			{
+				auto it = std::find(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), i);
+				if (it != m_SelectedIndexes.end()) m_SelectedIndexes.erase(it);
+				else
+				{
+					m_SelectedIndexes.push_back(i);
+					m_LastSelectedIndex = i;
+				}
+			}
+			else
+			{
+				m_SelectedIndexes.clear();
+				m_SelectedIndexes.push_back(i);
+				m_LastSelectedIndex = i;
+			}
+
+			if (ImGui::IsMouseDoubleClicked(0))
+			{
+				m_nameEditingIndex = i;
+				m_LastSelectedIndex = i;
+				if (std::find(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), i) == m_SelectedIndexes.end())
+				{
+					m_SelectedIndexes.clear();
+					m_SelectedIndexes.push_back(i);
+				}
+			}
+		}
+	}
+
+	if (isComponentsShown)
+	{
+		for (World::LevelObject::Component& component : levelObject.GetComponents()) ImGui::InputText(component.first.c_str(), &component.second);
+		ImGui::TreePop();
 	}
 }
 
 void LevelEditor::Update(float dt)
 {
+	m_IsCtrlPressed = ImGui::GetIO().KeyCtrl;
+	
 	m_SaveButtonMessageTimer.Tick();
-
-	if (m_SaveButtonMessageTimer.GetTotalTime() > m_TimeToShowSaveButtonMessage)
-	{
-		m_SaveButtonPressed = false;
-	}
+	if (m_SaveButtonMessageTimer.GetTotalTime() > m_TimeToShowSaveButtonMessage) m_SaveButtonPressed = false;
 }
 
 void LevelEditor::Save()
