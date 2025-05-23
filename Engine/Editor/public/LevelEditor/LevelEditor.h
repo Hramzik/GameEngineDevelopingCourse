@@ -19,7 +19,7 @@ namespace GameEngine
 
 		public:
 			virtual void Draw() override;
-			void DrawObjects(const char* searchFilter);
+			void DrawObjects();
 			void DrawObject(size_t i, World::LevelObject& levelObject);
 			virtual void Update(float dt) override;
 			virtual const char* GetName() const override { return "Level Editor"; }
@@ -37,6 +37,7 @@ namespace GameEngine
 			flecs::world& m_World;
 
 			std::set<std::string> m_Foldernames;
+			char searchFilter[256] = "";
 			std::vector<size_t> m_SelectedIndexes;
 			std::optional<size_t> m_LastSelectedIndex;
 			std::optional<size_t> m_nameEditingIndex;

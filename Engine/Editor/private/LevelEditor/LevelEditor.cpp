@@ -72,8 +72,7 @@ void LevelEditor::Draw()
 {
 	ImGui::Begin(GetName());
 
-	static char searchText[256] = "";
-	ImGui::InputTextWithHint("##Search", "Search...", searchText, sizeof(searchText));
+	ImGui::InputTextWithHint("##Search", "Search...", searchFilter, sizeof(searchFilter));
 
 	if (ImGui::Button("Create Folder")) ImGui::OpenPopup("Create New Folder");
 
@@ -124,7 +123,7 @@ void LevelEditor::Draw()
 		ImGui::EndPopup();
 	}
 
-	if (m_Level.has_value()) DrawObjects(searchText);
+	if (m_Level.has_value()) DrawObjects();
 
 	if (ImGui::Button("Save"))
 	{
@@ -142,7 +141,7 @@ void LevelEditor::Draw()
 	ImGui::End();
 }
 
-void LevelEditor::DrawObjects(const char* searchFilter)
+void LevelEditor::DrawObjects()
 {
 	for (const auto& folder : m_Foldernames)
 	{
@@ -221,6 +220,7 @@ void LevelEditor::DrawObject(size_t i, World::LevelObject& levelObject)
 	}
 	else
 	{
+		if (searchFilter[0] != '\0') ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
 		if (ImGui::Selectable(levelObject.GetName().c_str(), isSelected, ImGuiSelectableFlags_AllowDoubleClick | ImGuiSelectableFlags_SpanAllColumns))
 		{
 			//if (isShiftPressed && m_LastSelectedIndex)
@@ -258,6 +258,7 @@ void LevelEditor::DrawObject(size_t i, World::LevelObject& levelObject)
 				}
 			}
 		}
+		if (searchFilter[0] != '\0') ImGui::PopStyleColor();
 	}
 
 	if (isComponentsShown)
