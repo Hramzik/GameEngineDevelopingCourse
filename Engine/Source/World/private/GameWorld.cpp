@@ -37,7 +37,7 @@ namespace GameEngine::World
 
 	void GameWorld::LoadCurrentLevel()
 	{
-		for (auto& levelObjectPtr : m_CurrentLevel.value().GetLevelObjects())
+		for (std::shared_ptr<LevelObject>& levelObjectPtr : m_CurrentLevel.value().GetLevelObjects())
 		{
 			const LevelObject& levelObject = *levelObjectPtr;
 			flecs::entity newEntity = m_World.entity(levelObject.GetName().c_str());
@@ -81,7 +81,7 @@ namespace GameEngine::World
 
 	void GameWorld::UnloadCurrentLevel()
 	{
-		for (auto& levelObjectPtr : m_CurrentLevel.value().GetLevelObjects())
+		for (std::shared_ptr<LevelObject>& levelObjectPtr : m_CurrentLevel.value().GetLevelObjects())
 		{
 			flecs::entity entityToRemove = m_World.lookup(levelObjectPtr->GetName().c_str());
 

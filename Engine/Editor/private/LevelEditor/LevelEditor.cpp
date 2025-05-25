@@ -9,8 +9,6 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 
-#include <map>
-
 namespace GameEngine {
 namespace Editor {
 
@@ -19,11 +17,14 @@ LevelEditor::LevelEditor(flecs::world& world):
 {
 	m_Level = LevelSerializer::Deserialize(Core::g_FileSystem->GetFilePath("Levels/Main.xml").generic_string());
 
-	for (auto& levelObjectPtr : m_Level->GetLevelObjects())
+	for (std::shared_ptr<World::LevelObject>& levelObjectPtr : m_Level->GetLevelObjects())
 	{
 		World::LevelObject& levelObject = *levelObjectPtr;
 		flecs::entity entity = world.entity(levelObject.GetName().c_str());
-		if (!levelObject.GetFolder().empty()) m_Foldernames.insert(levelObject.GetFolder());
+		if (!levelObject.GetFolder().empty())
+		{
+			m_Foldernames.insert(levelObject.GetFolder());
+		}
 
 		World::LevelObject::ComponentList& componentList = levelObject.GetComponents();
 
@@ -56,13 +57,6 @@ LevelEditor::LevelEditor(flecs::world& world):
 					)
 				});
 		}
-
-		World::LevelObject::ComponentList::iterator folderAttribute = std::ranges::find_if(componentList,
-			[](World::LevelObject::Component& component)
-			{
-				return !std::strcmp(component.first.c_str(), "Folder");
-			}
-		);
 	}
 
 	EntitySystem::LevelEditorECS::RegisterLevelEditorEcsSystems(world);
@@ -74,17 +68,26 @@ void LevelEditor::Draw()
 
 	ImGui::InputTextWithHint("##Search", "Search...", searchFilter, sizeof(searchFilter));
 
-	if (ImGui::Button("Create Folder")) ImGui::OpenPopup("Create New Folder");
+	if (ImGui::Button("Create Folder"))
+	{
+		ImGui::OpenPopup("Create New Folder");
+	}
 
 	if (!m_SelectedIndexes.empty() && !m_Foldernames.empty())
 	{
 		ImGui::SameLine();
-		if (ImGui::Button("Add to Folder")) ImGui::OpenPopup("Select Folder To Add");
-	
+		if (ImGui::Button("Add to Folder"))
+		{
+			ImGui::OpenPopup("Select Folder To Add");
+		}
+
 		ImGui::SameLine();
 		if (ImGui::Button("Remove from Folder"))
 		{
-			for (size_t index : m_SelectedIndexes) m_Level->GetLevelObjects()[index]->SetFolder("");
+			for (size_t index : m_SelectedIndexes)
+			{
+				m_Level->GetLevelObjects()[index]->SetFolder("");
+			}
 		}
 	}
 
@@ -115,15 +118,21 @@ void LevelEditor::Draw()
 
 	if (ImGui::BeginPopup("Select Folder To Add"))
 	{
-		for (const auto& folder : m_Foldernames)
+		for (const std::string& folder : m_Foldernames)
 		{
 			if (!ImGui::MenuItem(folder.c_str())) continue;
-			for (size_t index : m_SelectedIndexes) m_Level->GetLevelObjects()[index]->SetFolder(folder);
+			for (size_t index : m_SelectedIndexes)
+			{
+				m_Level->GetLevelObjects()[index]->SetFolder(folder);
+			}
 		}
 		ImGui::EndPopup();
 	}
 
-	if (m_Level.has_value()) DrawObjects();
+	if (m_Level.has_value())
+	{
+		DrawObjects();
+	}
 
 	if (ImGui::Button("Save"))
 	{
@@ -143,7 +152,7 @@ void LevelEditor::Draw()
 
 void LevelEditor::DrawObjects()
 {
-	for (const auto& folder : m_Foldernames)
+	for (const std::string& folder : m_Foldernames)
 	{
 		if (!ImGui::TreeNodeEx(folder.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding)) continue;
 		for (size_t i = 0; i < m_Level->GetLevelObjects().size(); ++i)
@@ -203,7 +212,10 @@ void LevelEditor::DrawObject(size_t i, World::LevelObject& levelObject)
 
 	bool isComponentsShown = ImGui::TreeNodeEx((void*)(intptr_t)i, ImGuiTreeNodeFlags_FramePadding | (isSelected ? ImGuiTreeNodeFlags_Selected : 0), "");
 
-	if (isSelected) ImGui::PopStyleColor(2);
+	if (isSelected)
+	{
+		ImGui::PopStyleColor(2);
+	}
 	ImGui::SameLine(ImGui::GetTreeNodeToLabelSpacing() + (levelObject.GetFolder().empty() ? 8 : 30));
 
 	static char nameEditBuffer[256];
@@ -216,11 +228,17 @@ void LevelEditor::DrawObject(size_t i, World::LevelObject& levelObject)
 			levelObject.SetName(nameEditBuffer);
 			m_nameEditingIndex.reset();
 		}
-		if (ImGui::IsMouseClicked(0) && !ImGui::IsItemHovered()) m_nameEditingIndex.reset();
+		if (ImGui::IsMouseClicked(0) && !ImGui::IsItemHovered())
+		{
+			m_nameEditingIndex.reset();
+		}
 	}
 	else
 	{
-		if (searchFilter[0] != '\0') ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
+		if (searchFilter[0] != '\0')
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 0, 1));
+		}
 		if (ImGui::Selectable(levelObject.GetName().c_str(), isSelected, ImGuiSelectableFlags_AllowDoubleClick | ImGuiSelectableFlags_SpanAllColumns))
 		{
 			//if (isShiftPressed && m_LastSelectedIndex)
@@ -233,7 +251,10 @@ void LevelEditor::DrawObject(size_t i, World::LevelObject& levelObject)
 			if (m_IsCtrlPressed)
 			{
 				auto it = std::find(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), i);
-				if (it != m_SelectedIndexes.end()) m_SelectedIndexes.erase(it);
+				if (it != m_SelectedIndexes.end())
+				{
+					m_SelectedIndexes.erase(it);
+				}
 				else
 				{
 					m_SelectedIndexes.push_back(i);
@@ -258,7 +279,10 @@ void LevelEditor::DrawObject(size_t i, World::LevelObject& levelObject)
 				}
 			}
 		}
-		if (searchFilter[0] != '\0') ImGui::PopStyleColor();
+		if (searchFilter[0] != '\0')
+		{
+			ImGui::PopStyleColor();
+		}
 	}
 
 	if (isComponentsShown)
@@ -277,7 +301,10 @@ void LevelEditor::Update(float dt)
 	m_IsCtrlPressed = ImGui::GetIO().KeyCtrl;
 	
 	m_SaveButtonMessageTimer.Tick();
-	if (m_SaveButtonMessageTimer.GetTotalTime() > m_TimeToShowSaveButtonMessage) m_SaveButtonPressed = false;
+	if (m_SaveButtonMessageTimer.GetTotalTime() > m_TimeToShowSaveButtonMessage)
+	{
+		m_SaveButtonPressed = false;
+	}
 }
 
 void LevelEditor::Save()
