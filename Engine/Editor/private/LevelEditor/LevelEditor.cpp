@@ -84,7 +84,7 @@ void LevelEditor::Draw()
 		ImGui::SameLine();
 		if (ImGui::Button("Remove from Folder"))
 		{
-			for (size_t index : m_SelectedIndexes)
+			for (uint64_t index : m_SelectedIndexes)
 			{
 				m_Level->GetLevelObjects()[index]->SetFolder("");
 			}
@@ -121,7 +121,7 @@ void LevelEditor::Draw()
 		for (const std::string& folder : m_Foldernames)
 		{
 			if (!ImGui::MenuItem(folder.c_str())) continue;
-			for (size_t index : m_SelectedIndexes)
+			for (uint64_t index : m_SelectedIndexes)
 			{
 				m_Level->GetLevelObjects()[index]->SetFolder(folder);
 			}
@@ -155,7 +155,7 @@ void LevelEditor::DrawObjects()
 	for (const std::string& folder : m_Foldernames)
 	{
 		if (!ImGui::TreeNodeEx(folder.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding)) continue;
-		for (size_t i = 0; i < m_Level->GetLevelObjects().size(); ++i)
+		for (int i = 0; i < m_Level->GetLevelObjects().size(); ++i)
 		{
 			World::LevelObject& levelObject = *m_Level->GetLevelObjects()[i];
 			if (levelObject.GetFolder() != folder) continue;
@@ -166,7 +166,7 @@ void LevelEditor::DrawObjects()
 		ImGui::TreePop();
 	}
 
-	for (size_t i = 0; i < m_Level->GetLevelObjects().size(); ++i)
+	for (int i = 0; i < m_Level->GetLevelObjects().size(); ++i)
 	{
 		World::LevelObject& levelObject = *m_Level->GetLevelObjects()[i];
 		if (!levelObject.GetFolder().empty()) continue;
@@ -183,11 +183,11 @@ void LevelEditor::DrawObjects()
 
 	if (!m_SelectedIndexes.empty() && ImGui::IsKeyPressed(ImGuiKey_Delete))
 	{
-		std::sort(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), std::greater<size_t>());
+		std::sort(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), std::greater<uint64_t>());
 		
-		for (size_t index : m_SelectedIndexes)
+		for (uint64_t index : m_SelectedIndexes)
 		{
-			auto iter = m_Level->GetLevelObjects().begin() + index;
+			World::Level::LevelObjectList::iterator iter = m_Level->GetLevelObjects().begin() + index;
 			flecs::entity e = m_World.lookup((*iter)->GetName().c_str());
 			e.destruct();
 			m_Level->GetLevelObjects().erase(iter);
@@ -199,7 +199,7 @@ void LevelEditor::DrawObjects()
 	}
 }
 
-void LevelEditor::DrawObject(size_t i, World::LevelObject& levelObject)
+void LevelEditor::DrawObject(uint64_t i, World::LevelObject& levelObject)
 {
 	bool isNameEditing = m_nameEditingIndex == i;
 	bool isSelected = std::find(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), i) != m_SelectedIndexes.end();
@@ -241,16 +241,9 @@ void LevelEditor::DrawObject(size_t i, World::LevelObject& levelObject)
 		}
 		if (ImGui::Selectable(levelObject.GetName().c_str(), isSelected, ImGuiSelectableFlags_AllowDoubleClick | ImGuiSelectableFlags_SpanAllColumns))
 		{
-			//if (isShiftPressed && m_LastSelectedIndex)
-			//{
-			//	m_SelectedIndexes.clear();
-			//	size_t start = std::min(*m_LastSelectedIndex, i);
-			//	size_t end   = std::max(*m_LastSelectedIndex, i);
-			//	for (size_t rangeIdx = start; rangeIdx <= end; ++rangeIdx) m_SelectedIndexes.push_back(rangeIdx);
-			//} else
 			if (m_IsCtrlPressed)
 			{
-				auto it = std::find(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), i);
+				IndexList::iterator it = std::find(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), i);
 				if (it != m_SelectedIndexes.end())
 				{
 					m_SelectedIndexes.erase(it);
