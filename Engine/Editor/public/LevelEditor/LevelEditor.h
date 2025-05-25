@@ -39,7 +39,7 @@ namespace GameEngine
 
 			std::set<std::string> m_Foldernames;
 			char searchFilter[256] = "";
-			std::vector<uint64_t> m_SelectedIndexes;
+			IndexList m_SelectedIndexes;
 			std::optional<uint64_t> m_LastSelectedIndex;
 			std::optional<uint64_t> m_nameEditingIndex;
 		};
