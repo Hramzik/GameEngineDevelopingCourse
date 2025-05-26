@@ -120,7 +120,11 @@ void LevelEditor::Draw()
 	{
 		for (const std::string& folder : m_Foldernames)
 		{
-			if (!ImGui::MenuItem(folder.c_str())) continue;
+			if (!ImGui::MenuItem(folder.c_str()))
+			{
+				continue;
+			}
+
 			for (uint64_t index : m_SelectedIndexes)
 			{
 				m_Level->GetLevelObjects()[index]->SetFolder(folder);
@@ -131,7 +135,7 @@ void LevelEditor::Draw()
 
 	if (m_Level.has_value())
 	{
-		DrawObjects();
+		DrawObjectList();
 	}
 
 	if (ImGui::Button("Save"))
@@ -150,57 +154,89 @@ void LevelEditor::Draw()
 	ImGui::End();
 }
 
-void LevelEditor::DrawObjects()
+LevelEditor::IndexList LevelEditor::FilterObjects(std::string folder, std::string searchFilter)
 {
-	for (const std::string& folder : m_Foldernames)
-	{
-		if (!ImGui::TreeNodeEx(folder.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding)) continue;
-		for (int i = 0; i < m_Level->GetLevelObjects().size(); ++i)
-		{
-			World::LevelObject& levelObject = *m_Level->GetLevelObjects()[i];
-			if (levelObject.GetFolder() != folder) continue;
-			if (searchFilter[0] != '\0' && levelObject.GetName().find(searchFilter) == std::string::npos) continue;
-
-			DrawObject(i, levelObject);
-		}
-		ImGui::TreePop();
-	}
+	IndexList result;
 
 	for (int i = 0; i < m_Level->GetLevelObjects().size(); ++i)
 	{
 		World::LevelObject& levelObject = *m_Level->GetLevelObjects()[i];
-		if (!levelObject.GetFolder().empty()) continue;
-		if (searchFilter[0] != '\0' && levelObject.GetName().find(searchFilter) == std::string::npos) continue;
 
-		DrawObject(i, levelObject);
+		if (levelObject.GetFolder() != folder)
+		{
+			continue;
+		}
+
+		if (searchFilter[0] != '\0' && levelObject.GetName().find(searchFilter) == std::string::npos)
+		{
+			continue;
+		}
+
+		result.push_back(i);
+	}
+
+	return result;
+}
+
+void LevelEditor::DrawObjectList()
+{
+	for (const std::string& folder : m_Foldernames)
+	{
+		if (!ImGui::TreeNodeEx(folder.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding))
+		{
+			continue;
+		}
+
+		for (uint64_t i : FilterObjects(folder, searchFilter))
+		{
+			DrawObjectListItem(i);
+		}
+
+		ImGui::TreePop();
+	}
+
+	for (uint64_t i : FilterObjects("", searchFilter))
+	{
+		DrawObjectListItem(i);
 	}
 
 	if (ImGui::IsMouseClicked(0) && !ImGui::IsAnyItemHovered() && ImGui::IsWindowHovered() && !m_IsCtrlPressed)
 	{
-		m_SelectedIndexes.clear();
-		m_LastSelectedIndex.reset();
+		UnselectAll();
 	}
 
 	if (!m_SelectedIndexes.empty() && ImGui::IsKeyPressed(ImGuiKey_Delete))
 	{
-		std::sort(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), std::greater<uint64_t>());
-		
-		for (uint64_t index : m_SelectedIndexes)
-		{
-			World::Level::LevelObjectList::iterator iter = m_Level->GetLevelObjects().begin() + index;
-			flecs::entity e = m_World.lookup((*iter)->GetName().c_str());
-			e.destruct();
-			m_Level->GetLevelObjects().erase(iter);
-		}
-		
-		m_SelectedIndexes.clear();
-		m_LastSelectedIndex.reset();
-		m_nameEditingIndex.reset();
+		DeleteSelected();
 	}
 }
 
-void LevelEditor::DrawObject(uint64_t i, World::LevelObject& levelObject)
+void LevelEditor::UnselectAll()
 {
+	m_SelectedIndexes.clear();
+	m_LastSelectedIndex.reset();
+}
+
+void LevelEditor::DeleteSelected()
+{
+	std::sort(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), std::greater<uint64_t>());
+
+	for (uint64_t index : m_SelectedIndexes)
+	{
+		World::Level::LevelObjectList::iterator iter = m_Level->GetLevelObjects().begin() + index;
+		flecs::entity e = m_World.lookup((*iter)->GetName().c_str());
+		e.destruct();
+		m_Level->GetLevelObjects().erase(iter);
+	}
+
+	m_SelectedIndexes.clear();
+	m_LastSelectedIndex.reset();
+	m_nameEditingIndex.reset();
+}
+
+void LevelEditor::DrawObjectListItem(uint64_t i)
+{
+	World::LevelObject& levelObject = *m_Level->GetLevelObjects()[i];
 	bool isNameEditing = m_nameEditingIndex == i;
 	bool isSelected = std::find(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), i) != m_SelectedIndexes.end();
 	
@@ -241,36 +277,7 @@ void LevelEditor::DrawObject(uint64_t i, World::LevelObject& levelObject)
 		}
 		if (ImGui::Selectable(levelObject.GetName().c_str(), isSelected, ImGuiSelectableFlags_AllowDoubleClick | ImGuiSelectableFlags_SpanAllColumns))
 		{
-			if (m_IsCtrlPressed)
-			{
-				IndexList::iterator it = std::find(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), i);
-				if (it != m_SelectedIndexes.end())
-				{
-					m_SelectedIndexes.erase(it);
-				}
-				else
-				{
-					m_SelectedIndexes.push_back(i);
-					m_LastSelectedIndex = i;
-				}
-			}
-			else
-			{
-				m_SelectedIndexes.clear();
-				m_SelectedIndexes.push_back(i);
-				m_LastSelectedIndex = i;
-			}
-
-			if (ImGui::IsMouseDoubleClicked(0))
-			{
-				m_nameEditingIndex = i;
-				m_LastSelectedIndex = i;
-				if (std::find(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), i) == m_SelectedIndexes.end())
-				{
-					m_SelectedIndexes.clear();
-					m_SelectedIndexes.push_back(i);
-				}
-			}
+			SelectObjectListItem(i);
 		}
 		if (searchFilter[0] != '\0')
 		{
@@ -286,6 +293,40 @@ void LevelEditor::DrawObject(uint64_t i, World::LevelObject& levelObject)
 			ImGui::InputText(component.first.c_str(), &component.second);
 		}
 		ImGui::TreePop();
+	}
+}
+
+void LevelEditor::SelectObjectListItem(uint64_t i)
+{
+	if (m_IsCtrlPressed)
+	{
+		IndexList::iterator it = std::find(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), i);
+		if (it != m_SelectedIndexes.end())
+		{
+			m_SelectedIndexes.erase(it);
+		}
+		else
+		{
+			m_SelectedIndexes.push_back(i);
+			m_LastSelectedIndex = i;
+		}
+	}
+	else
+	{
+		m_SelectedIndexes.clear();
+		m_SelectedIndexes.push_back(i);
+		m_LastSelectedIndex = i;
+	}
+
+	if (ImGui::IsMouseDoubleClicked(0))
+	{
+		m_nameEditingIndex = i;
+		m_LastSelectedIndex = i;
+		if (std::find(m_SelectedIndexes.begin(), m_SelectedIndexes.end(), i) == m_SelectedIndexes.end())
+		{
+			m_SelectedIndexes.clear();
+			m_SelectedIndexes.push_back(i);
+		}
 	}
 }
 

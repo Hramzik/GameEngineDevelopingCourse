@@ -19,9 +19,13 @@ namespace GameEngine
 			LevelEditor(flecs::world& world);
 
 		public:
+			IndexList FilterObjects(std::string folder, std::string searchFilter);
 			virtual void Draw() override;
-			void DrawObjects();
-			void DrawObject(uint64_t i, World::LevelObject& levelObject);
+			void DrawObjectList();
+			void DrawObjectListItem(uint64_t i);
+			void SelectObjectListItem(uint64_t i);
+			void UnselectAll();
+			void DeleteSelected();
 			virtual void Update(float dt) override;
 			virtual const char* GetName() const override { return "Level Editor"; }
 
