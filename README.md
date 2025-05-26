@@ -1,23 +1,36 @@
-# GameEngineDevelopingCourse
+# GameEngineDevelopingCourse Project
 
-## Requirements
-1. Visual studio 2022
-2. MSVC toolset v134 (or you can just import the default.vsconfig that lies at the root of the project)
-3. Windows 10 SDK (10.0.19041.0)
+## Что было сделано
+Улучшен редактор уровней
 
-## Installation steps (for Windows)
-1. .\get_submodules.bat
-2. Got to the Samples folder and choose any available sample
-3. .\generate_vs2022.bat
-4. .\cmake_output\build_win64\SampleName.sln
+## Новые функции
 
-## How to launch the project
-1. Install the Smart Command Line Arguments extension for visual studio. It will help you, believe me
-2. Use the command line arguments in order to properly launch the project
+### 1. Редактирование имен сущностей
+- Двойной клик по имени для редактирования
+- Сохранение при нажатии Enter
+- Отмена редактирования кликом вне поля
 
-### List of useful command line Arguments
-1. `-project_root=/path/to/sample/root` (mandatory) is used to set a project root
-2. `-wfd` (optional) is to wait for the debugger to attach to the process before continue processing
+### 2. Поиск сущностей
+- Поле поиска в верхней части окна
+- Подсветка найденных совпадений желтым цветом
+- Регистрозависимый поиск по подстроке
 
-### List of useful buttons in Debug build
-1. `F2` to reload game scripts
+### 3. Выбор сущностей
+- Одиночный выбор (клик)
+- Множественный выбор:
+  - Ctrl+клик - добавить/убрать из выделения
+- Визуальное выделение выбранных сущностей
+
+### 4. Удаление сущностей
+- Удаление выделенных сущностей клавишей Delete
+
+### 5. Группировка по папкам
+- Создание папок (кнопка "Create Folder")
+- Управление группами сущностей (доступно при активном выделении):
+  - "Add to Folder" - добавить выделенные в папку
+  - "Remove from Folder" - убрать выделенные из папок
+- Древовидное отображение папок с возможностью сворачивания
+
+## Горячие клавиши
+- `Delete` - удалить выбранные сущности
+- `Ctrl+клик` - множественное выделение

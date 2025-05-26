@@ -20,12 +20,14 @@ namespace GameEngine::Editor
 		root->SetAttribute("name", level.GetName().c_str());
 		doc.InsertFirstChild(root);
 
-		for (const World::LevelObject& levelObject : level.GetLevelObjects())
+		for (const std::shared_ptr<World::LevelObject>& levelObjectPtr : level.GetLevelObjects())
 		{
+			const World::LevelObject& levelObject = *levelObjectPtr;
 			tinyxml2::XMLElement* entityElem = root->InsertNewChildElement("entity");
 			assert(entityElem != nullptr);
 
 			entityElem->SetAttribute("Name", levelObject.GetName().c_str());
+			entityElem->SetAttribute("Folder", levelObject.GetFolder().c_str());
 
 			for (const World::LevelObject::Component& component : levelObject.GetComponents())
 			{

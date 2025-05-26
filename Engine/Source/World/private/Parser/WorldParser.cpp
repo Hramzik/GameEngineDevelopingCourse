@@ -45,6 +45,10 @@ namespace GameEngine::World
 				{
 					newLevelObject.SetName(entityAttr->Value());
 				}
+				else if (!std::strcmp(entityAttr->Name(), "Folder"))
+				{
+					newLevelObject.SetFolder(entityAttr->Value());
+				}
 				else
 				{
 					newLevelObject.AddComponent(entityAttr->Name(), entityAttr->Value());

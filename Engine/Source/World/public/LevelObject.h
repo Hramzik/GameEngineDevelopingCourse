@@ -22,9 +22,12 @@ namespace GameEngine::World
 		void AddComponent(const ComponentName& name, const ComponentDesc& desc);
 		const ComponentList& GetComponents() const { return m_ComponentList; }
 		ComponentList& GetComponents() { return m_ComponentList; }
+		void SetFolder(const std::string& folder) { m_Folder = folder; }
+		const std::string& GetFolder() const { return m_Folder; }
 
 	private:
 		std::string m_Name = "None";
 		ComponentList m_ComponentList;
+		std::string m_Folder;
 	};
 }

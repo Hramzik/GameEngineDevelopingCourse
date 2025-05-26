@@ -9,6 +9,6 @@ namespace GameEngine::World
 
 	void Level::AddLevelObject(const LevelObject& levelObject)
 	{
-		m_LevelObjectList.push_back(levelObject);
+		m_LevelObjectList.push_back(std::make_shared<LevelObject>(levelObject));
 	}
 }
